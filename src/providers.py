@@ -6,6 +6,7 @@ Hỗ trợ Native Tool Calling và chuyển đổi linh hoạt qua biến môi t
 import os
 import sys
 import json
+import re
 from typing import Dict, Any, List
 from dotenv import load_dotenv
 
@@ -32,31 +33,171 @@ class MockOfflineProvider(BaseLLMProvider):
         self.model_name = "Offline-Mock-Model-2026"
 
     def generate(self, prompt: str, system_prompt: str = "") -> str:
-        return f"[Mock Chatbot Response]: Xin chào! Tôi đã nhận được câu hỏi '{prompt}'. (Chế độ Chatbot không có Tool tra cứu dữ liệu thời gian thực)."
+        return f"[Mock Chatbot Response]: Tôi đã nhận được câu hỏi '{prompt}'. (Chế độ Chatbot không có dữ liệu lịch khám thời gian thực)."
 
     def generate_with_tools(self, prompt: str, tools_schema: List[Dict[str, Any]], system_prompt: str = "") -> Dict[str, Any]:
-        prompt_lower = prompt.lower()
-        
-        # Mô phỏng nhận diện intent gọi Tool
-        if "sv2026001" in prompt_lower and "đặt lịch" in prompt_lower:
-            return {
-                "type": "tool_call",
-                "tool_name": "schedule_appointment",
-                "arguments": {"student_id": "SV2026001", "datetime_str": "14:00 15/09/2026", "advisor_name": "PGS.TS Nguyễn Văn A"},
-                "thought": "Người dùng yêu cầu đặt lịch hẹn tư vấn cho sinh viên SV2026001. Tôi sẽ gọi tool schedule_appointment."
+        prompt_lower = prompt.casefold()
+        has_observation = "mcp observation" in prompt_lower
+        asks_for_booking = "đặt" in prompt_lower or "dat " in prompt_lower or "đăng ký" in prompt_lower
+        asks_multi_step = asks_for_booking and any(
+            marker in prompt_lower
+            for marker in ("sau đó", "sau khi", "rồi", "nếu có", "tra cứu lịch", "tìm lịch", "tìm bác sĩ")
+        )
+
+        def extract_specialty() -> str:
+            specialties = {
+                "tim mạch": "Tim mạch",
+                "tim mach": "Tim mạch",
+                "da liễu": "Da liễu",
+                "da lieu": "Da liễu",
+                "nhi khoa": "Nhi khoa",
             }
-        elif "sv2026001" in prompt_lower or "tra cứu" in prompt_lower:
+            for keyword, display_name in specialties.items():
+                if keyword in prompt_lower:
+                    return display_name
+            specialty_match = re.search(
+                r"chuyên khoa\s+(.+?)(?=\s+tại|\s+ngày|\s+ưu tiên|[,\n.]|$)",
+                prompt,
+                re.IGNORECASE,
+            )
+            if specialty_match:
+                return specialty_match.group(1).strip()
+            return "Tim mạch"
+
+        def extract_date() -> str:
+            match = re.search(r"\b(\d{1,2}/\d{1,2}/\d{4})\b", prompt)
+            return match.group(1) if match else "20/09/2026"
+
+        def extract_datetime() -> str:
+            match = re.search(
+                r"(\d{1,2}:\d{2})\s*(?:ngày\s*)?(\d{1,2}/\d{1,2}/\d{4})",
+                prompt,
+                re.IGNORECASE,
+            )
+            if match:
+                return f"{match.group(1)} {match.group(2)}"
+            slot_match = re.search(r'"available_slots"\s*:\s*\[\s*"([^"]+)"', prompt)
+            return slot_match.group(1) if slot_match else f"08:30 {extract_date()}"
+
+        def extract_doctor() -> str:
+            observation_match = re.search(r'"doctor_name"\s*:\s*"([^"]+)"', prompt)
+            if observation_match:
+                return observation_match.group(1)
+            explicit_match = re.search(
+                r"bác sĩ\s+(.+?)(?=\s+vào lúc|\s+ngày|\s+tại|[,\n]|$)",
+                prompt,
+                re.IGNORECASE,
+            )
+            if explicit_match:
+                return explicit_match.group(1).strip()
+            defaults = {
+                "Tim mạch": "PGS.TS Nguyễn Hoàng Nam",
+                "Da liễu": "BS.CKII Trần Minh Anh",
+                "Nhi khoa": "TS.BS Lê Thu Hà",
+            }
+            return defaults[extract_specialty()]
+
+        def extract_patient_name() -> str:
+            match = re.search(
+                r"(?:bệnh nhân|cho bệnh nhân|tên là)\s+(.+?)(?=\s+(?:với|vào|ngày|tại|vì)|[,\n]|$)",
+                prompt,
+                re.IGNORECASE,
+            )
+            return match.group(1).strip() if match else "Nguyễn An"
+
+        def extract_location() -> str:
+            if "vinmec central park" in prompt_lower:
+                return "Vinmec Central Park"
+            return "Vinmec Times City"
+
+        def extract_reason() -> str:
+            match = re.search(r"(?:vì|lý do khám là)\s+(.+?)(?:[.\n]|$)", prompt, re.IGNORECASE)
+            return match.group(1).strip() if match else "Khám theo nhu cầu của bệnh nhân"
+
+        def extract_time_preference() -> str:
+            if "buổi sáng" in prompt_lower or "sáng" in prompt_lower:
+                return "buổi sáng"
+            if "buổi chiều" in prompt_lower or "chiều" in prompt_lower:
+                return "buổi chiều"
+            return "bất kỳ"
+
+        # Sau mỗi Observation, Mock tiếp tục vòng ReAct hoặc trả lời cuối cùng.
+        if has_observation:
+            if asks_for_booking and "booking_id" not in prompt_lower and '"available_slots"' in prompt_lower:
+                return {
+                    "type": "tool_call",
+                    "tool_name": "book_medical_appointment",
+                    "arguments": {
+                        "patient_name": extract_patient_name(),
+                        "specialty": extract_specialty(),
+                        "doctor_name": extract_doctor(),
+                        "appointment_datetime": extract_datetime(),
+                        "location": extract_location(),
+                        "reason": extract_reason(),
+                    },
+                    "thought": "Đã nhận được bác sĩ và khung giờ hợp lệ từ Observation. Tôi sẽ dùng dữ liệu đó để đặt lịch khám.",
+                }
+
+            if "not_found" in prompt_lower:
+                content = "Chưa tìm thấy lịch khám cho chuyên khoa này. Bạn có thể thử một chuyên khoa khác."
+            elif "no_availability" in prompt_lower:
+                content = "Hiện chưa có khung giờ phù hợp với điều kiện bạn chọn. Mình chưa tạo lịch khám."
+            elif "booking_id" in prompt_lower:
+                content = "Đã đặt lịch khám Vinmec thành công theo bác sĩ và khung giờ đã xác nhận."
+            else:
+                content = "Đã tìm thấy lịch bác sĩ phù hợp. Bạn có thể chọn một khung giờ để tiếp tục đặt lịch."
+            return {
+                "type": "text",
+                "content": content,
+                "thought": "Đã nhận được Observation từ MCP Server và đủ dữ liệu để trả lời người dùng.",
+            }
+
+        # Với yêu cầu nhiều bước, luôn tra cứu trước để lấy bác sĩ và khung giờ.
+        if asks_multi_step:
             return {
                 "type": "tool_call",
-                "tool_name": "academic_query",
-                "arguments": {"student_id": "SV2026001"},
-                "thought": "Người dùng muốn tra cứu thông tin học vụ của sinh viên SV2026001. Tôi sẽ gọi tool academic_query."
+                "tool_name": "doctor_schedule_query",
+                "arguments": {
+                    "specialty": extract_specialty(),
+                    "preferred_date": extract_date(),
+                    "location": extract_location(),
+                    "time_preference": extract_time_preference(),
+                },
+                "thought": "Tôi cần tra cứu lịch bác sĩ trước để chỉ đặt một khung giờ đang còn trống.",
+            }
+
+        # Mô phỏng nhận diện intent gọi Tool cho các yêu cầu một bước.
+        if asks_for_booking:
+            return {
+                "type": "tool_call",
+                "tool_name": "book_medical_appointment",
+                "arguments": {
+                    "patient_name": extract_patient_name(),
+                    "specialty": extract_specialty(),
+                    "doctor_name": extract_doctor(),
+                    "appointment_datetime": extract_datetime(),
+                    "location": extract_location(),
+                    "reason": extract_reason(),
+                },
+                "thought": "Người dùng đã cung cấp bác sĩ và khung giờ. Tôi sẽ gọi tool book_medical_appointment.",
+            }
+        elif any(keyword in prompt_lower for keyword in ("lịch", "bác sĩ", "chuyên khoa", "khám", "tra cứu")):
+            return {
+                "type": "tool_call",
+                "tool_name": "doctor_schedule_query",
+                "arguments": {
+                    "specialty": extract_specialty(),
+                    "preferred_date": extract_date(),
+                    "location": extract_location(),
+                    "time_preference": extract_time_preference(),
+                },
+                "thought": "Người dùng cần dữ liệu lịch khám thực tế. Tôi sẽ tra cứu bác sĩ và khung giờ phù hợp.",
             }
         else:
             return {
                 "type": "text",
-                "content": f"[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-                "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool."
+                "content": "Mình có thể hỗ trợ tra cứu lịch bác sĩ và đặt lịch khám tại Vinmec. Mình không chẩn đoán hoặc tư vấn điều trị.",
+                "thought": "Đây là câu hỏi chung về phạm vi dịch vụ, chưa cần gọi Tool.",
             }
 
 

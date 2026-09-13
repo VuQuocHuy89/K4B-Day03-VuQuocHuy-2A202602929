@@ -1,29 +1,210 @@
 [
   {
     "step": 1,
-    "query": "Chào bạn, bạn có thể giới thiệu quy chế học vụ cơ bản của Đại học VinUni không?",
+    "query": "Vinmec có thể hỗ trợ những việc gì qua trợ lý này?",
     "action_type": "FINAL_ANSWER",
-    "thought": "Câu hỏi chung về quy chế học vụ, trả lời trực tiếp không cần gọi Tool.",
-    "output": "[Mock Agent Response]: Xin chào! Quy chế học vụ VinUni yêu cầu sinh viên tích lũy tối thiểu 120 tín chỉ và duy trì GPA trên 2.0 để tốt nghiệp.",
-    "latency_ms": 2845.93
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Chào bạn, tôi là Vinmec Care Coordinator - trợ lý hỗ trợ điều phối và đặt lịch khám tại hệ thống Y tế Vinmec. \n\nTôi có thể hỗ trợ bạn các công việc sau:\n\n1. Tra cứu lịch khám của bác sĩ: Tìm kiếm danh sách bác sĩ, chuyên khoa và các khung giờ còn trống tại từng cơ sở Vinmec theo ngày và thời gian mong muốn của bạn.\n2. Đặt lịch khám bệnh: Đăng ký lịch hẹn khám nhanh chóng với bác sĩ và chuyên khoa phù hợp sau khi xác nhận thông tin khung giờ và cơ sở khám.\n3. Tư vấn quy trình điều phối hẹn: Hướng dẫn các thông tin cần thiết trước khi đến khám.\n\nLưu ý: Trợ lý chỉ hỗ trợ điều phối lịch hẹn, không thực hiện chẩn đoán, kê đơn thuốc hay cung cấp hướng dẫn điều trị y khoa. Trường hợp có các dấu hiệu cấp cứu, vui lòng liên hệ ngay số điện thoại cấp cứu 115 hoặc đến cơ sở y tế gần nhất.\n\nBạn cần hỗ trợ tra cứu hoặc đặt lịch khám cho chuyên khoa nào hôm nay?",
+    "latency_ms": 4712.49
   },
   {
     "step": 1,
-    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "query": "Hãy tra cứu lịch khám chuyên khoa Da liễu tại Vinmec Times City ngày 21/09/2026, ưu tiên buổi sáng.",
     "action_type": "TOOL_EXECUTION",
-    "tool_name": "academic_query",
+    "tool_name": "doctor_schedule_query",
     "arguments": {
-      "student_id": "SV2026001"
+      "specialty": "Da liễu",
+      "location": "Vinmec Times City",
+      "time_preference": "buổi sáng",
+      "preferred_date": "21/09/2026"
     },
-    "observation": {},
-    "latency_ms": 799.12
+    "observation": {
+      "status": "SUCCESS",
+      "specialty": "Da liễu",
+      "location": "Vinmec Times City",
+      "preferred_date": "21/09/2026",
+      "doctors": [
+        {
+          "doctor_name": "BS.CKII Trần Minh Anh",
+          "title": "Bác sĩ Da liễu",
+          "available_slots": [
+            "10:00 21/09/2026"
+          ]
+        }
+      ],
+      "message": "Tìm thấy 1 bác sĩ có lịch phù hợp."
+    },
+    "thought": "Gemini quyết định gọi công cụ 'doctor_schedule_query' với tham số: {\"specialty\": \"Da liễu\", \"location\": \"Vinmec Times City\", \"time_preference\": \"buổi sáng\", \"preferred_date\": \"21/09/2026\"}",
+    "latency_ms": 3310.39
   },
   {
     "step": 2,
-    "query": "Hãy tra cứu thông tin học vụ của sinh viên SV2026001.",
+    "query": "Hãy tra cứu lịch khám chuyên khoa Da liễu tại Vinmec Times City ngày 21/09/2026, ưu tiên buổi sáng.",
     "action_type": "FINAL_ANSWER",
-    "thought": "Tổng hợp kết quả từ MCP Server thành công.",
-    "output": "Chưa thể trả lời chi tiết do chưa nhận được dữ liệu từ MCP Server (hãy hoàn thành TODO 2.1).",
-    "latency_ms": 10.0
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Dưới đây là kết quả tra cứu lịch khám chuyên khoa Da liễu tại Vinmec Times City vào ngày 21/09/2026 (ưu tiên buổi sáng):\n- Bác sĩ: BS.CKII Trần Minh Anh  \n- Chức danh: Bác sĩ Da liễu  \n- Khung giờ còn trống: 10:00 - 21/09/2026  \n\n---\n\nNếu quý khách muốn đăng ký đặt lịch khám vào khung giờ trên, vui lòng cung cấp thêm các thông tin sau:\n1. Họ và tên bệnh nhân\n2. Lý do khám (mô tả ngắn gọn triệu chứng/nhu cầu)\n\nVinmec hân hạnh được hỗ trợ quý khách!",
+    "latency_ms": 2878.59
+  },
+  {
+    "step": 1,
+    "query": "Hãy đặt lịch khám Da liễu cho bệnh nhân Nguyễn An với bác sĩ BS.CKII Trần Minh Anh vào lúc 10:00 ngày 21/09/2026 tại Vinmec Times City vì tôi muốn kiểm tra da.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "doctor_schedule_query",
+    "arguments": {
+      "time_preference": "buổi sáng",
+      "preferred_date": "21/09/2026",
+      "location": "Vinmec Times City",
+      "specialty": "Da liễu"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "specialty": "Da liễu",
+      "location": "Vinmec Times City",
+      "preferred_date": "21/09/2026",
+      "doctors": [
+        {
+          "doctor_name": "BS.CKII Trần Minh Anh",
+          "title": "Bác sĩ Da liễu",
+          "available_slots": [
+            "10:00 21/09/2026"
+          ]
+        }
+      ],
+      "message": "Tìm thấy 1 bác sĩ có lịch phù hợp."
+    },
+    "thought": "Gemini quyết định gọi công cụ 'doctor_schedule_query' với tham số: {\"time_preference\": \"buổi sáng\", \"preferred_date\": \"21/09/2026\", \"location\": \"Vinmec Times City\", \"specialty\": \"Da liễu\"}",
+    "latency_ms": 2945.74
+  },
+  {
+    "step": 2,
+    "query": "Hãy đặt lịch khám Da liễu cho bệnh nhân Nguyễn An với bác sĩ BS.CKII Trần Minh Anh vào lúc 10:00 ngày 21/09/2026 tại Vinmec Times City vì tôi muốn kiểm tra da.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "book_medical_appointment",
+    "arguments": {
+      "patient_name": "Nguyễn An",
+      "specialty": "Da liễu",
+      "doctor_name": "BS.CKII Trần Minh Anh",
+      "appointment_datetime": "10:00 21/09/2026",
+      "location": "Vinmec Times City",
+      "reason": "tôi muốn kiểm tra da"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "booking_id": "VMC-2026-1000",
+      "patient_name": "Nguyễn An",
+      "specialty": "Da liễu",
+      "doctor_name": "BS.CKII Trần Minh Anh",
+      "appointment_datetime": "10:00 21/09/2026",
+      "location": "Vinmec Times City",
+      "reason": "tôi muốn kiểm tra da",
+      "message": "Đặt lịch thành công cho Nguyễn An với BS.CKII Trần Minh Anh vào lúc 10:00 21/09/2026 tại Vinmec Times City."
+    },
+    "thought": "Đã nhận được bác sĩ và khung giờ hợp lệ từ Observation. Tôi sẽ dùng dữ liệu đó để đặt lịch khám.",
+    "latency_ms": 516.53
+  },
+  {
+    "step": 3,
+    "query": "Hãy đặt lịch khám Da liễu cho bệnh nhân Nguyễn An với bác sĩ BS.CKII Trần Minh Anh vào lúc 10:00 ngày 21/09/2026 tại Vinmec Times City vì tôi muốn kiểm tra da.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Đã nhận được Observation từ MCP Server và đủ dữ liệu để trả lời người dùng.",
+    "output": "Đã đặt lịch khám Vinmec thành công theo bác sĩ và khung giờ đã xác nhận.",
+    "latency_ms": 484.26
+  },
+  {
+    "step": 1,
+    "query": "Hãy tìm lịch khám Tim mạch tại Vinmec Times City ngày 20/09/2026, sau đó nếu có lịch buổi sáng hãy đặt cho bệnh nhân Nguyễn An vì tôi muốn kiểm tra định kỳ.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "doctor_schedule_query",
+    "arguments": {
+      "specialty": "Tim mạch",
+      "preferred_date": "20/09/2026",
+      "location": "Vinmec Times City",
+      "time_preference": "buổi sáng"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "specialty": "Tim mạch",
+      "location": "Vinmec Times City",
+      "preferred_date": "20/09/2026",
+      "doctors": [
+        {
+          "doctor_name": "PGS.TS Nguyễn Hoàng Nam",
+          "title": "Trưởng khoa Tim mạch",
+          "available_slots": [
+            "08:30 20/09/2026",
+            "10:30 20/09/2026"
+          ]
+        }
+      ],
+      "message": "Tìm thấy 1 bác sĩ có lịch phù hợp."
+    },
+    "thought": "Tôi cần tra cứu lịch bác sĩ trước để chỉ đặt một khung giờ đang còn trống.",
+    "latency_ms": 446.34
+  },
+  {
+    "step": 2,
+    "query": "Hãy tìm lịch khám Tim mạch tại Vinmec Times City ngày 20/09/2026, sau đó nếu có lịch buổi sáng hãy đặt cho bệnh nhân Nguyễn An vì tôi muốn kiểm tra định kỳ.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "book_medical_appointment",
+    "arguments": {
+      "patient_name": "Nguyễn An",
+      "specialty": "Tim mạch",
+      "doctor_name": "PGS.TS Nguyễn Hoàng Nam",
+      "appointment_datetime": "08:30 20/09/2026",
+      "location": "Vinmec Times City",
+      "reason": "tôi muốn kiểm tra định kỳ"
+    },
+    "observation": {
+      "status": "SUCCESS",
+      "booking_id": "VMC-2026-0830",
+      "patient_name": "Nguyễn An",
+      "specialty": "Tim mạch",
+      "doctor_name": "PGS.TS Nguyễn Hoàng Nam",
+      "appointment_datetime": "08:30 20/09/2026",
+      "location": "Vinmec Times City",
+      "reason": "tôi muốn kiểm tra định kỳ",
+      "message": "Đặt lịch thành công cho Nguyễn An với PGS.TS Nguyễn Hoàng Nam vào lúc 08:30 20/09/2026 tại Vinmec Times City."
+    },
+    "thought": "Đã nhận được bác sĩ và khung giờ hợp lệ từ Observation. Tôi sẽ dùng dữ liệu đó để đặt lịch khám.",
+    "latency_ms": 459.69
+  },
+  {
+    "step": 3,
+    "query": "Hãy tìm lịch khám Tim mạch tại Vinmec Times City ngày 20/09/2026, sau đó nếu có lịch buổi sáng hãy đặt cho bệnh nhân Nguyễn An vì tôi muốn kiểm tra định kỳ.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Đã nhận được Observation từ MCP Server và đủ dữ liệu để trả lời người dùng.",
+    "output": "Đã đặt lịch khám Vinmec thành công theo bác sĩ và khung giờ đã xác nhận.",
+    "latency_ms": 496.18
+  },
+  {
+    "step": 1,
+    "query": "Hãy tra cứu lịch khám chuyên khoa Ngoại thần kinh tại Vinmec Times City ngày 21/09/2026.",
+    "action_type": "TOOL_EXECUTION",
+    "tool_name": "doctor_schedule_query",
+    "arguments": {
+      "specialty": "Ngoại thần kinh",
+      "preferred_date": "21/09/2026",
+      "location": "Vinmec Times City",
+      "time_preference": "bất kỳ"
+    },
+    "observation": {
+      "status": "NOT_FOUND",
+      "message": "Chưa có dữ liệu lịch khám cho chuyên khoa 'Ngoại thần kinh'.",
+      "available_specialties": [
+        "Tim mạch",
+        "Da liễu",
+        "Nhi khoa"
+      ]
+    },
+    "thought": "Người dùng cần dữ liệu lịch khám thực tế. Tôi sẽ tra cứu bác sĩ và khung giờ phù hợp.",
+    "latency_ms": 489.06
+  },
+  {
+    "step": 2,
+    "query": "Hãy tra cứu lịch khám chuyên khoa Ngoại thần kinh tại Vinmec Times City ngày 21/09/2026.",
+    "action_type": "FINAL_ANSWER",
+    "thought": "Gemini phản hồi trực tiếp bằng văn bản (không cần gọi công cụ).",
+    "output": "Dạ, hiện tại hệ thống chưa có dữ liệu lịch khám cho chuyên khoa Ngoại thần kinh tại Vinmec Times City vào ngày 21/09/2026.\n\nCác chuyên khoa đang có lịch khám khả dụng bao gồm:\n- Tim mạch\n- Da liễu\n- Nhi khoa\n\nAnh/Chị có muốn đổi sang ngày khác hoặc chuyển sang chuyên khoa/cơ sở khám khác không ạ? Em có thể hỗ trợ tra cứu giúp Anh/Chị!",
+    "latency_ms": 3153.4
   }
 ]

@@ -1,0 +1,37 @@
+[
+  {
+    "id": "TC01",
+    "type": "direct_query",
+    "question": "Vinmec có thể hỗ trợ những việc gì qua trợ lý này?",
+    "expected_behavior": "Agent trả lời trực tiếp về phạm vi điều phối lịch khám, không chẩn đoán và không gọi Tool.",
+    "complexity": "Low"
+  },
+  {
+    "id": "TC02",
+    "type": "single_tool_query",
+    "question": "Hãy tra cứu lịch khám chuyên khoa Da liễu tại Vinmec Times City ngày 21/09/2026, ưu tiên buổi sáng.",
+    "expected_behavior": "Agent phát sinh Tool Call 'doctor_schedule_query' để tìm bác sĩ và khung giờ phù hợp.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC03",
+    "type": "appointment_booking",
+    "question": "Hãy đặt lịch khám Da liễu cho bệnh nhân Nguyễn An với bác sĩ BS.CKII Trần Minh Anh vào lúc 10:00 ngày 21/09/2026 tại Vinmec Times City vì tôi muốn kiểm tra da.",
+    "expected_behavior": "Agent phát sinh Tool Call 'book_medical_appointment' với đúng bệnh nhân, bác sĩ, thời gian và cơ sở.",
+    "complexity": "Medium"
+  },
+  {
+    "id": "TC04",
+    "type": "multi_step_reasoning",
+    "question": "Hãy tìm lịch khám Tim mạch tại Vinmec Times City ngày 20/09/2026, sau đó nếu có lịch buổi sáng hãy đặt cho bệnh nhân Nguyễn An vì tôi muốn kiểm tra định kỳ.",
+    "expected_behavior": "Agent thực hiện chuỗi ReAct: tra cứu lịch bác sĩ trước, sau đó chỉ đặt một khung giờ buổi sáng còn trống.",
+    "complexity": "High"
+  },
+  {
+    "id": "TC05",
+    "type": "edge_case_handling",
+    "question": "Hãy tra cứu lịch khám chuyên khoa Ngoại thần kinh tại Vinmec Times City ngày 21/09/2026.",
+    "expected_behavior": "Agent nhận kết quả NOT_FOUND từ Tool và thông báo chính xác, không bịa đặt lịch bác sĩ.",
+    "complexity": "Medium"
+  }
+]
